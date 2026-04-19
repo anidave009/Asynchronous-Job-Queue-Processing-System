@@ -1,34 +1,30 @@
 package com.example.asynchronousjobqueuebackgroundprocessingsystem.service;
-
+import com.example.asynchronousjobqueuebackgroundprocessingsystem.kafka.JobProducer;
 import com.example.asynchronousjobqueuebackgroundprocessingsystem.model.Job;
-import org.springframework.scheduling.annotation.Async;
+import com.example.asynchronousjobqueuebackgroundprocessingsystem.redis.JobStatusRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-
 @Service
+@RequiredArgsConstructor
 public class JobService {
 
-    private final JobAsyncService jobAsyncService;
+    private final JobProducer jobProducer;
+    private final JobStatusRepository jobStatusRepository;
 
-    public JobService(JobAsyncService jobAsyncService) {
-        this.jobAsyncService = jobAsyncService;
-    }
-
-    public Job submitJob(String jobType){
+    public Job submitJob(String jobType) {
         Job job = Job.builder()
                 .id(UUID.randomUUID().toString())
                 .type(jobType)
                 .status("PENDING")
-                .createdAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now().toString())
                 .build();
-
-        System.out.println("Submitting Job " + job.getId());
-
-        jobAsyncService.processJobAsync(job); // async call
-
+        // write PENDING to Redis
+        jobStatusRepository.updateStatus(job.getId(), "PENDING");
+        jobProducer.sendJob(job);
+        System.out.println("Job submitted to topic " + job.getId());
         return job;
     }
 }

@@ -31,3 +31,14 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Environment files
+.env
+*.env
+
+# Application secrets
+application-local.properties
+application-secret.properties
+
+# Docker volumes
+docker-volumes/

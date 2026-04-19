@@ -15,5 +15,5 @@ public class Job {
 
     private String status;
 
-    private LocalDateTime createdAt;
+    private String createdAt;
 }
